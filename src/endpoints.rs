@@ -9,5 +9,5 @@ pub const JOBCANCEL: &str = "/job/cancel";
 pub const JOBS: &str = "/jobs";
 
 pub const JOBSTATE: &str = "/job/state";
-pub const JOBPAUSE: &str = "/job/pause";
-pub const JOBRESUME: &str = "/job/resume";
+pub const JOBPAUSE: &str = "/job/state/pause";
+pub const JOBRESUME: &str = "/job/state/resume";

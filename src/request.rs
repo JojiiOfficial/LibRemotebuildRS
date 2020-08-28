@@ -92,7 +92,6 @@ where
         }
 
         let r = req_builder.send().await.map_err(Error::Request)?;
-
         let headers = r.headers();
         if !headers.contains_key(HEADER_RESPONSE_STATUS)
             || !headers.contains_key(HEADER_RESPONSE_MESSAGE)
@@ -167,16 +166,16 @@ pub struct JobRequest {
     pub job_id: u32,
 }
 
-#[derive(Serialize)]
+#[derive(Default, Serialize)]
 pub struct AddJobRequest {
     #[serde(rename(serialize = "buildtype"))]
-    job_type: jobs::Type,
+    pub job_type: jobs::Type,
 
-    args: HashMap<String, String>,
+    pub args: HashMap<String, String>,
 
     #[serde(rename(serialize = "uploadtype"))]
-    upload_type: jobs::UploadType,
+    pub upload_type: jobs::UploadType,
 
     #[serde(rename(serialize = "disableccache"))]
-    disable_ccache: bool,
+    pub disable_ccache: bool,
 }

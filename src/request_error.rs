@@ -7,4 +7,5 @@ pub enum Error {
     Decode(reqErr),
     InvalidHeaders,
     Error(String),
+    InvalidState,
 }

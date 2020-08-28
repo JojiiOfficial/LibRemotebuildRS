@@ -56,6 +56,12 @@ pub enum Type {
     JobAUR,
 }
 
+impl Default for Type {
+    fn default() -> Self {
+        Type::NoBuild
+    }
+}
+
 impl<'de> serde::Deserialize<'de> for Type {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Type, D::Error> {
         Ok(match serde::de::Deserialize::deserialize(deserializer)? {
@@ -83,6 +89,12 @@ impl serde::Serialize for Type {
 pub enum UploadType {
     NoUploadType,
     DataManager,
+}
+
+impl Default for UploadType {
+    fn default() -> Self {
+        UploadType::NoUploadType
+    }
 }
 
 impl<'de> serde::Deserialize<'de> for UploadType {
