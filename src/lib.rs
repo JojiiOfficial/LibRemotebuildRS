@@ -1,10 +1,10 @@
 #![allow(dead_code)]
 
-mod aur;
-mod config;
-mod endpoints;
-mod jobs;
-mod librb;
-mod request;
-mod request_error;
-mod responses;
+pub mod aur;
+pub mod config;
+pub mod endpoints;
+pub mod jobs;
+pub mod librb;
+pub mod request;
+pub mod request_error;
+pub mod responses;

@@ -101,4 +101,23 @@ impl LibRb {
 
         Ok(())
     }
+
+    pub async fn login(
+        &self,
+        username: String,
+        password: String,
+    ) -> Result<RequestResult<responses::Login>, request_error::Error> {
+        let mut request = Request::new(
+            self.config.clone(),
+            endpoints::LOGIN,
+            request::Credential {
+                machine_id: self.config.machine_id.clone(),
+                username,
+                password,
+            },
+        );
+
+        request.with_method(reqwest::Method::POST);
+        Ok(request.do_request().await?)
+    }
 }

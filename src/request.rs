@@ -179,3 +179,14 @@ pub struct AddJobRequest {
     #[serde(rename(serialize = "disableccache"))]
     pub disable_ccache: bool,
 }
+
+#[derive(Serialize, Debug, Default)]
+pub struct Credential {
+    #[serde(rename(serialize = "mid"))]
+    pub machine_id: String,
+
+    pub username: String,
+
+    #[serde(rename(serialize = "pass"))]
+    pub password: String,
+}

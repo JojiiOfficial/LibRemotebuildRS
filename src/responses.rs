@@ -13,3 +13,8 @@ pub struct AddJob {
     #[serde(rename(deserialize = "pos"))]
     pub position: i32,
 }
+
+#[derive(Deserialize, Debug)]
+pub struct Login {
+    pub token: String,
+}
