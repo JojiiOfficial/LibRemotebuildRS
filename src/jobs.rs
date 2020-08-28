@@ -1,10 +1,12 @@
 use chrono::{DateTime, NaiveDateTime};
-use serde::de::{Deserializer, Error};
+use serde::de::{Deserializer, Error as DError};
+use serde::ser::Serializer;
 use serde::Deserialize;
 
 use std::time::Duration;
 
-#[derive(Deserialize, Debug)]
+/// The status for a job
+#[derive(Debug)]
 pub enum Status {
     Waiting,
     Cancelled,
@@ -14,18 +16,101 @@ pub enum Status {
     Paused,
 }
 
-#[derive(Debug, Deserialize)]
+impl<'de> serde::Deserialize<'de> for Status {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        Ok(match serde::de::Deserialize::deserialize(deserializer)? {
+            0 => Status::Waiting,
+            1 => Status::Cancelled,
+            2 => Status::Failed,
+            3 => Status::Running,
+            4 => Status::Done,
+            5 => Status::Paused,
+            _ => return Err(D::Error::custom("status not found")),
+        })
+    }
+}
+
+impl serde::Serialize for Status {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_u8(match self {
+            Status::Waiting => 0,
+            Status::Cancelled => 1,
+            Status::Failed => 2,
+            Status::Running => 3,
+            Status::Done => 4,
+            Status::Paused => 5,
+        })
+    }
+}
+
+/// Type of a job
+#[derive(Debug)]
 pub enum Type {
     NoBuild,
     JobAUR,
 }
 
-#[derive(Deserialize, Debug)]
+impl<'de> serde::Deserialize<'de> for Type {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Type, D::Error> {
+        Ok(match serde::de::Deserialize::deserialize(deserializer)? {
+            0 => Type::NoBuild,
+            1 => Type::JobAUR,
+            _ => return Err(D::Error::custom("type not found")),
+        })
+    }
+}
+
+impl serde::Serialize for Type {
+    fn serialize<S>(&self, s: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        s.serialize_u8(match self {
+            Type::NoBuild => 0,
+            Type::JobAUR => 1,
+        })
+    }
+}
+
+/// Upload type of a job
+#[derive(Debug)]
 pub enum UploadType {
     NoUploadType,
     DataManager,
 }
 
+impl<'de> serde::Deserialize<'de> for UploadType {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        Ok(match serde::de::Deserialize::deserialize(deserializer)? {
+            0 => UploadType::NoUploadType,
+            1 => UploadType::DataManager,
+            _ => return Err(D::Error::custom("type not found")),
+        })
+    }
+}
+
+impl serde::Serialize for UploadType {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_u8(match self {
+            UploadType::NoUploadType => 0,
+            UploadType::DataManager => 1,
+        })
+    }
+}
+
+/// Infos about a job
 #[derive(Debug, Deserialize)]
 pub struct Info {
     pub id: u32,
@@ -34,16 +119,13 @@ pub struct Info {
     #[serde(rename(deserialize = "pos"))]
     pub position: u32,
 
-    #[serde(deserialize_with = "deserialize_type", rename(deserialize = "jobtype"))]
+    #[serde(rename(deserialize = "jobtype"))]
     pub build_type: Type,
 
-    #[serde(
-        deserialize_with = "deserialize_upload_type",
-        rename(deserialize = "uploadtype")
-    )]
+    #[serde(rename(deserialize = "uploadtype"))]
     pub upload_type: UploadType,
 
-    #[serde(deserialize_with = "deserialize_status", rename(deserialize = "state"))]
+    #[serde(rename(deserialize = "state"))]
     pub status: Status,
 
     #[serde(deserialize_with = "deserialize_date", rename(deserialize = "rs"))]
@@ -69,34 +151,4 @@ pub fn deserialize_duration<'de, D: Deserializer<'de>>(
     Ok(Duration::from_nanos(serde::de::Deserialize::deserialize(
         deserializer,
     )?))
-}
-
-pub fn deserialize_status<'de, D: Deserializer<'de>>(deserializer: D) -> Result<Status, D::Error> {
-    Ok(match serde::de::Deserialize::deserialize(deserializer)? {
-        0 => Status::Waiting,
-        1 => Status::Cancelled,
-        2 => Status::Failed,
-        3 => Status::Running,
-        4 => Status::Done,
-        5 => Status::Paused,
-        _ => return Err(D::Error::custom("status not found")),
-    })
-}
-
-pub fn deserialize_type<'de, D: Deserializer<'de>>(deserializer: D) -> Result<Type, D::Error> {
-    Ok(match serde::de::Deserialize::deserialize(deserializer)? {
-        0 => Type::NoBuild,
-        1 => Type::JobAUR,
-        _ => return Err(D::Error::custom("type not found")),
-    })
-}
-
-pub fn deserialize_upload_type<'de, D: Deserializer<'de>>(
-    deserializer: D,
-) -> Result<UploadType, D::Error> {
-    Ok(match serde::de::Deserialize::deserialize(deserializer)? {
-        0 => UploadType::NoUploadType,
-        1 => UploadType::DataManager,
-        _ => return Err(D::Error::custom("type not found")),
-    })
 }
