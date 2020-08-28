@@ -72,10 +72,10 @@ where
     async fn prepare_response(self) -> Result<(reqwest::Response, String, u8), Error> {
         let mut req_builder = reqwest::Client::new().request(
             self.method,
-            reqwest::Url::parse(
-                String::from(format!("{}{}", self.config.url, self.endpoint)).as_str(),
-            )
-            .unwrap(),
+            reqwest::Url::parse(&self.config.url)
+                .unwrap()
+                .join(&self.endpoint)
+                .unwrap(),
         );
 
         // Add payload

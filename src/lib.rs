@@ -8,8 +8,3 @@ mod librb;
 mod request;
 mod request_error;
 mod responses;
-
-#[tokio::main]
-async fn main() {
-    let _librb = librb::new(config);
-}

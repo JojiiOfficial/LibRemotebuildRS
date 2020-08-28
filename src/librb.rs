@@ -12,7 +12,7 @@ pub fn new(config: config::RequestConfig) -> LibRb {
 }
 
 impl LibRb {
-    pub fn to_aurbuild<S: AsRef<str>>(self, pkg_name: S) -> aur::AURBuild {
+    pub fn new_aurbuild<S: AsRef<str>>(&self, pkg_name: S) -> aur::AURBuild {
         let mut hm: HashMap<String, String> = HashMap::new();
         hm.insert(aur::AUR_PACKAGE.to_owned(), pkg_name.as_ref().to_owned());
 
@@ -78,7 +78,7 @@ impl LibRb {
         );
 
         request.with_auth(self.auth_from_conf());
-        request.with_method(reqwest::Method::POST);
+        request.with_method(reqwest::Method::PUT);
         Ok(request.do_request().await?)
     }
 

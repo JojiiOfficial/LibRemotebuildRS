@@ -11,14 +11,14 @@ pub const DM_HOST: &str = "DM_HOST"; // DMHost Dmanager host
 pub const DM_NAMESPACE: &str = "DM_NAMESPACE"; // DMHost Dmanager host
 pub const AUR_PACKAGE: &str = "REPO"; // AUR package to build
 
-pub struct AURBuild {
-    pub librb: librb::LibRb,
+pub struct AURBuild<'a> {
+    pub librb: &'a librb::LibRb,
     pub args: HashMap<String, String>,
     pub upload_type: UploadType,
     pub disable_ccache: bool,
 }
 
-impl AURBuild {
+impl<'a> AURBuild<'a> {
     pub fn without_ccache(mut self) -> Self {
         self.disable_ccache = true;
         self
@@ -36,7 +36,7 @@ impl AURBuild {
         self.args.insert(DM_USER.to_owned(), username);
         self.args.insert(DM_HOST.to_owned(), host);
 
-        if namespace.len() > 0 {
+        if !namespace.is_empty() {
             self.args.insert(DM_NAMESPACE.to_owned(), namespace);
         }
 
