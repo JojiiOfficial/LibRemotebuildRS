@@ -1,8 +1,11 @@
 use crate::config::RequestConfig;
+use crate::jobs;
 use crate::request_error::Error;
 
 use serde::de::DeserializeOwned;
 use serde::Serialize;
+
+use std::collections::HashMap;
 
 const HEADER_RESPONSE_STATUS: &str = "x-response-status";
 const HEADER_RESPONSE_MESSAGE: &str = "x-response-message";
@@ -66,10 +69,7 @@ where
         self.method = method;
     }
 
-    pub async fn do_request<U>(self) -> Result<RequestResult<U>, Error>
-    where
-        U: DeserializeOwned,
-    {
+    async fn prepare_response(self) -> Result<(reqwest::Response, String, u8), Error> {
         let mut req_builder = reqwest::Client::new().request(
             self.method,
             reqwest::Url::parse(
@@ -92,6 +92,7 @@ where
         }
 
         let r = req_builder.send().await.map_err(Error::Request)?;
+
         let headers = r.headers();
         if !headers.contains_key(HEADER_RESPONSE_STATUS)
             || !headers.contains_key(HEADER_RESPONSE_MESSAGE)
@@ -114,10 +115,30 @@ where
             .parse()
             .map_err(|_| Error::InvalidHeaders)?;
 
+        Ok((r, msg, status))
+    }
+
+    pub async fn do_request_void(self) -> Result<(), Error> {
+        let (_, msg, status) = self.prepare_response().await?;
+
+        if status == STATUS_SUCCESS {
+            Ok(())
+        } else {
+            Err(Error::Error(msg))
+        }
+    }
+
+    pub async fn do_request<U>(self) -> Result<RequestResult<U>, Error>
+    where
+        U: DeserializeOwned,
+    {
+        let (r, msg, status) = self.prepare_response().await?;
+
         if status == STATUS_SUCCESS {
             let response: U = r.json().await.map_err(Error::Decode)?;
+
             Ok(RequestResult {
-                response,
+                response: Some(response),
                 message: msg.to_string(),
                 status_code: status,
             })
@@ -129,7 +150,7 @@ where
 
 #[derive(Debug)]
 pub struct RequestResult<T> {
-    pub response: T,
+    pub response: Option<T>,
     pub message: String,
     pub status_code: u8,
 }
@@ -138,4 +159,24 @@ pub struct RequestResult<T> {
 pub struct ListJobs {
     #[serde(rename(serialize = "l"))]
     pub limit: i32,
+}
+
+#[derive(Default, Serialize)]
+pub struct JobRequest {
+    #[serde(rename(serialize = "id"))]
+    pub job_id: u32,
+}
+
+#[derive(Serialize)]
+pub struct AddJobRequest {
+    #[serde(rename(serialize = "buildtype"))]
+    job_type: jobs::Type,
+
+    args: HashMap<String, String>,
+
+    #[serde(rename(serialize = "uploadtype"))]
+    upload_type: jobs::UploadType,
+
+    #[serde(rename(serialize = "disableccache"))]
+    disable_ccache: bool,
 }
