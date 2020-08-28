@@ -51,6 +51,8 @@ impl<T> Request<T>
 where
     T: Serialize + Default,
 {
+    /// Create a new request by using a config, the desired endpoint and a Serializeable value T which will
+    /// be formatted to json
     pub fn new(config: RequestConfig, endpoint: &str, p: T) -> Self {
         Request {
             // WithAuthFromConfig with authorization
@@ -61,14 +63,17 @@ where
         }
     }
 
+    /// Use the given authorization for the request
     pub fn with_auth(&mut self, auth: Authorization) {
         self.auth = Some(auth);
     }
 
+    /// Use the given HTTP Method for the request
     pub fn with_method(&mut self, method: reqwest::Method) {
         self.method = method;
     }
 
+    /// Prepare and send a request. Don't do any parsing of the results body.
     async fn prepare_response(self) -> Result<(reqwest::Response, String, u8), Error> {
         let mut req_builder = reqwest::Client::new().request(
             self.method,
@@ -91,6 +96,7 @@ where
             );
         }
 
+        // Send the request
         let r = req_builder.send().await.map_err(Error::Request)?;
         let headers = r.headers();
         if !headers.contains_key(HEADER_RESPONSE_STATUS)
@@ -117,6 +123,7 @@ where
         Ok((r, msg, status))
     }
 
+    /// Do a request but don't parse the body
     pub async fn do_request_void(self) -> Result<(), Error> {
         let (_, msg, status) = self.prepare_response().await?;
 
@@ -127,6 +134,7 @@ where
         }
     }
 
+    /// Do a request but try to parse the body into a RequestResult
     pub async fn do_request<U>(self) -> Result<RequestResult<U>, Error>
     where
         U: DeserializeOwned,
@@ -147,25 +155,36 @@ where
     }
 }
 
+/// Result for a request. T represents
+/// The destination type to parse the
+/// result in.
 #[derive(Debug)]
-pub struct RequestResult<T> {
+pub struct RequestResult<T>
+where
+    T: DeserializeOwned,
+{
     pub response: Option<T>,
     pub message: String,
     pub status_code: u8,
 }
 
+/// Lists all jobs with a given limit
 #[derive(Default, Serialize)]
 pub struct ListJobs {
     #[serde(rename(serialize = "l"))]
     pub limit: i32,
 }
 
+/// Payload for requests with need
+/// a reference to a job by its id
 #[derive(Default, Serialize)]
 pub struct JobRequest {
     #[serde(rename(serialize = "id"))]
     pub job_id: u32,
 }
 
+/// Payload for creating a new Job
+/// args - additional arguments
 #[derive(Default, Serialize)]
 pub struct AddJobRequest {
     #[serde(rename(serialize = "buildtype"))]
@@ -180,6 +199,8 @@ pub struct AddJobRequest {
     pub disable_ccache: bool,
 }
 
+/// Payload for requests which need
+/// user credentials
 #[derive(Serialize, Debug, Default)]
 pub struct Credential {
     #[serde(rename(serialize = "mid"))]

@@ -12,6 +12,7 @@ pub fn new(config: config::RequestConfig) -> LibRb {
 }
 
 impl LibRb {
+    /// Return a new AURBuild which allows you to create build AUR jobs
     pub fn new_aurbuild<S: AsRef<str>>(&self, pkg_name: S) -> aur::AURBuild {
         let mut hm: HashMap<String, String> = HashMap::new();
         hm.insert(aur::AUR_PACKAGE.to_owned(), pkg_name.as_ref().to_owned());
@@ -24,6 +25,7 @@ impl LibRb {
         }
     }
 
+    /// Return Authorization created from `self`s config
     pub fn auth_from_conf(&self) -> request::Authorization {
         request::Authorization::new(
             request::AuthorizationType::Bearer,
@@ -31,6 +33,8 @@ impl LibRb {
         )
     }
 
+    /// List all running and past jobs. `limit` indicates the limit how
+    /// much to display
     pub async fn list_jobs(
         &self,
         limit: i32,
@@ -45,6 +49,7 @@ impl LibRb {
         Ok(request.do_request().await?)
     }
 
+    /// Cancel a running job
     pub async fn cancel_job(&self, job_id: u32) -> Result<(), request_error::Error> {
         let mut request = Request::new(
             self.config.clone(),
@@ -59,6 +64,7 @@ impl LibRb {
         Ok(())
     }
 
+    /// Creates and adds a new job
     pub async fn add_job(
         &self,
         job_type: jobs::Type,
@@ -82,6 +88,8 @@ impl LibRb {
         Ok(request.do_request().await?)
     }
 
+    /// Set a jobs state either to `paused` or `running`
+    /// This allows to pause/continue a task
     pub async fn set_job_state(
         &self,
         job_id: u32,
@@ -102,6 +110,7 @@ impl LibRb {
         Ok(())
     }
 
+    /// Login into an existing account. Returns the token on success
     pub async fn login(
         &self,
         username: String,
