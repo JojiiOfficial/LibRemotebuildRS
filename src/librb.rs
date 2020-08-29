@@ -15,6 +15,7 @@ impl LibRb {
     /// Return a new AURBuild which allows you to create build AUR jobs
     pub fn new_aurbuild<S: AsRef<str>>(&self, pkg_name: S) -> aur::AURBuild {
         let mut hm: HashMap<String, String> = HashMap::new();
+
         hm.insert(aur::AUR_PACKAGE.to_owned(), pkg_name.as_ref().to_owned());
 
         aur::AURBuild {
