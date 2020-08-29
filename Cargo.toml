@@ -1,6 +1,6 @@
 [package]
 name = "lib_remotebuild-rs"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["jojii <jojii@gmx.net>"]
 edition = "2018"
 description = "A wrapper for the remote build API written in rust"
