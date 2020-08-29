@@ -7,4 +7,5 @@ pub enum Error {
     InvalidHeaders,
     Error(String),
     InvalidState,
+    HTTPNotOk(u16),
 }

@@ -64,6 +64,22 @@ impl LibRb {
         Ok(())
     }
 
+    /// Gets information about a job
+    pub async fn job_info(
+        &self,
+        job_id: u32,
+    ) -> Result<RequestResult<jobs::Info>, request_error::Error> {
+        let mut request = Request::new(
+            self.config.clone(),
+            endpoints::JOBINFO,
+            request::JobRequest { job_id },
+        );
+
+        request.with_auth(self.auth_from_conf());
+        request.with_method(reqwest::Method::GET);
+        Ok(request.do_request().await?)
+    }
+
     /// Creates and adds a new job
     pub async fn add_job(
         &self,

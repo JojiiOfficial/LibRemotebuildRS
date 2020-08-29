@@ -98,6 +98,11 @@ where
 
         // Send the request
         let r = req_builder.send().await.map_err(Error::Request)?;
+        let status = r.status().as_u16();
+        if status != 200 {
+            return Err(Error::HTTPNotOk(status));
+        }
+
         let headers = r.headers();
         if !headers.contains_key(HEADER_RESPONSE_STATUS)
             || !headers.contains_key(HEADER_RESPONSE_MESSAGE)
