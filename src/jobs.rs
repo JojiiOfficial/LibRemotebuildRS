@@ -6,7 +6,7 @@ use serde::Deserialize;
 use std::time::Duration;
 
 /// The status for a job
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Status {
     Waiting,
     Cancelled,
@@ -14,6 +14,22 @@ pub enum Status {
     Running,
     Done,
     Paused,
+}
+
+impl Status {
+    pub fn is_working_state(&self) -> bool {
+        match self {
+            Status::Waiting | Status::Running | Status::Paused => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_stopped_state(&self) -> bool {
+        match self {
+            Status::Cancelled | Status::Failed | Status::Done => true,
+            _ => false,
+        }
+    }
 }
 
 impl<'de> serde::Deserialize<'de> for Status {
